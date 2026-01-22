@@ -2,58 +2,95 @@
 
 A machine learning project applying **regularized linear regression (Ridge)** to predict house prices from Nigerian real estate data scraped from Nigeria Property Centre.
 
+---
+
 ## 📋 Project Overview
 
-This project demonstrates core machine learning concepts using **Ridge regression** on a real-world Nigerian housing dataset:
+This project demonstrates core machine learning principles using a **manual implementation of Ridge regression** on a real-world Nigerian housing dataset.
 
-- **Custom Ridge implementation** with $X^TX + \lambda I$ regularization
-- **Hyperparameter tuning** via validation RMSE
-- **Feature engineering** for missing data and categorical variables
-- **Log-transformation** of skewed price target
-- **Train/validation/test splitting** with reproducible seeding
+Key highlights include:
 
-**Final Model Performance**: ~0.87 RMSE on log-transformed prices (reasonable baseline for linear models)
+- Manual implementation of **Ridge regression using the closed-form solution**
+- **Three-way data split** (train / validation / test) for proper model selection
+- **Hyperparameter tuning** using validation RMSE
+- Retraining the final model on **combined training + validation data**
+- Feature engineering for missing values, categorical data, and temporal features
+- Log transformation of a highly skewed price target
+
+**Final Model Performance**  
+RMSE ≈ **0.87** on log-transformed house prices (strong linear baseline on noisy real-world data)
+
+---
 
 ## 📊 Dataset
 
-**Source**: [Kaggle - Nigeria Real Estate Dataset](https://www.kaggle.com/datasets/chik0di/nigeria-real-estate-dataset)  
+**Source**: Kaggle – Nigeria Real Estate Dataset  
 **Records**: 1,668 properties  
 
-**Key Features**
-- Bedrooms, Bathrooms, Toilets, Parking Spaces
-- Total Area, Covered Area (sqm)
-- Property Type (Detached Duplex, Block of Flats, etc.)
-- Location (State: Lagos, Abuja, Ogun, Oyo, etc.)
-- Listing Duration (days on market)
+### Key Features
+- Bedrooms, Bathrooms, Toilets, Parking Spaces  
+- Total Area, Covered Area (sqm)  
+- Property Type (Detached Duplex, Block of Flats, etc.)  
+- Location (State: Lagos, Abuja, Ogun, Oyo, etc.)  
+- Listing duration (days on market)
 
-## 🛠️ Key Techniques Applied
+---
 
-### 1. **Data Preprocessing**
-- ✓ Missing value handling with indicators
-- ✓ Area parsing (`"850 sqm"` → `850.0`)
-- ✓ Date feature engineering (`ListingDurationDays`)
-- ✓ One-hot encoding for Property Type and State
-- ✓ Log transformation of target variable (`log(1 + Price)`)
+## 🛠️ Methodology & Techniques
 
-### 2. **Model Implementation**
-- Ridge Regression: $$w = (X^TX + \lambda I)^{-1}X^Ty$$
-- Custom bias term and regularization matrix
-- Grid search: $\alpha \in [10^{-5}, 10^{-3}, \ldots, 10]$
+### 1️⃣ Data Preprocessing & Feature Engineering
+- Parsed numeric values from text fields (e.g. `"850 sqm" → 850.0`)
+- Handled missing values using:
+  - Zero-imputation for numeric features
+  - Explicit **missingness indicator variables**
+- Engineered a temporal feature: `Listing_Duration_Days`
+- Encoded categorical variables using one-hot encoding
+- Applied **log(1 + price)** transformation to stabilize variance
 
-### 3. **Evaluation Pipeline**
-- Train: 60% | Validation: 20% | Test: 20%
-- Metric: RMSE on log-scale prices
-- Numeric-only versus full-feature model comparison
+---
 
-## 📈 Results Summary
+### 2️⃣ Manual Ridge Regression Implementation
 
-| Model                  | Train RMSE | Test RMSE |
-|:----------------------:|:---------:|:---------:|
-| Full Ridge (+categorical) | 0.82     | **0.88**  |
+Ridge regression was implemented **from scratch** using the closed-form solution:
 
+$w = (X^TX + \lambda I)^{-1}X^Ty$
 
-**Takeaway**: The linear model establishes a solid baseline (~50–100% price error), limited by dataset complexity and linear assumptions.
+Key implementation details:
+- Explicit bias term handling
+- L2 regularization to control multicollinearity
+- No reliance on `scikit-learn` for model fitting
 
+---
+
+### 3️⃣ Model Training & Selection Strategy
+
+The modeling pipeline followed standard supervised learning best practices:
+
+1. Data split into:
+   - **Training set (60%)**
+   - **Validation set (20%)**
+   - **Test set (20%)**
+2. For each regularization strength (α):
+   - Train the model on the training set
+   - Evaluate RMSE on the validation set
+3. Select the best α based on validation performance
+4. **Retrain the final model once** on the combined training + validation data
+5. Evaluate generalization performance **once** on the held-out test set
+
+This approach preserves test set integrity and avoids data leakage.
+
+---
+
+## 📈 Results
+
+| Model Configuration | RMSE (Train+Val) | RMSE (Test) |
+|---------------------|-----------------|-------------|
+| Ridge (full features) | 0.82 | **0.87** |
+
+### Interpretation
+The linear Ridge model provides a strong baseline but is limited by its inability to capture non-linear relationships common in housing markets. The results suggest that tree-based oror models that capture non-linear relationships may further improve performance.
+
+---
 
 ## 🚀 Quick Start
 
@@ -68,14 +105,17 @@ pip install -r requirements.txt
 
 3. **Launch Jupyter Notebook**
 jupyter notebook Nigeria_Housing_Price_Prediction.ipynb
+
 ## 🎯 Learning Outcomes
 
-- Implemented Ridge regression from scratch (no `sklearn`)
-- Handled real-world data issues (missing values, text parsing)
-- Tuned regularization using a validation set
-- Interpreted log-scale RMSE in a business context
-- Compared numeric-only and full feature sets
-- Visualized model diagnostics (residuals and predictions)
+Through this project, I:
+
+- Implemented Ridge regression mathematically from scratch
+- Applied correct train / validation / test workflow
+- Tuned hyperparameters using validation RMSE
+- Managed real-world data challenges (missing values, messy text fields)
+- Engineered meaningful domain features
+- Interpreted log-scale error metrics in a practical context
 
 ## 📝 Author
 
