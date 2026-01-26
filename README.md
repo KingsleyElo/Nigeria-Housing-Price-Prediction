@@ -1,130 +1,125 @@
-# Nigeria Housing Price Prediction
+# Nigeria Housing Price Prediction 🚀
 
-A machine learning project applying **regularized linear regression (Ridge)** to predict house prices from Nigerian real estate data scraped from Nigeria Property Centre.
+This project implements a linear regression model using a **Ridge regression pipeline built with scikit-learn** to predict Nigerian house prices, achieving an approximately **24% RMSE improvement (0.88 → 0.67)** over a carefully implemented manual Ridge regression model through **feature scaling, numerically stable solvers, and cross-validated hyperparameter tuning**.
+
+The repository compares a **from-scratch Ridge regression implementation (linear algebra)** with an **sklearn-based Pipeline approach**, illustrating how factors such as scaling, solver choice, and validation strategy can significantly influence model performance—even when both implementations are methodologically sound and free from data leakage.
 
 ---
 
-## 📋 Project Overview
+## 🎯 Project Highlights
 
-This project demonstrates core machine learning principles using a **manual implementation of Ridge regression** on a real-world Nigerian housing dataset.
+| Aspect | Manual Implementation | Sklearn Pipeline |
+|------|----------------------|------------------------------------|
+| Test RMSE | 0.88 | **0.67** |
+| Scaling | ❌ None | ✅ **StandardScaler** |
+| Validation | Single split | **5-fold cross-validation** |
+| Regularization α | 0.0001 | **10 (CV-tuned)** |
 
-Key highlights include:
+---
 
-- Manual implementation of **Ridge regression using the closed-form solution**
-- **Three-way data split** (train / validation / test) for proper model selection
-- **Hyperparameter tuning** using validation RMSE
-- Retraining the final model on **combined training + validation data**
-- Feature engineering for missing values, categorical data, and temporal features
-- Log transformation of a highly skewed price target
+## 📋 What This Project Demonstrates
 
-**Final Model Performance**  
-RMSE ≈ **0.87** on log-transformed house prices (strong linear baseline on noisy real-world data)
+- Manual Ridge regression using the closed-form solution **(XᵀX + λI)⁻¹Xᵀy**
+- Why **feature scaling** drastically changes the optimal regularization strength
+- How **missing-value indicators** allow linear models to learn from absence of data
+- Proper **train / validation / test** workflows using cross-validation without data leakage
 
 ---
 
 ## 📊 Dataset
 
-**Source**: Kaggle – Nigeria Real Estate Dataset  
-**Records**: 1,668 properties  
+- **Source:** Kaggle – [Nigeria Property Centre dataset](https://www.kaggle.com/datasets/chik0di/nigeria-real-estate-dataset).
+- **Size:** **1,668 residential property listings** across Lagos, Abuja, Ogun, Oyo, and other states
 
-### Key Features
-- Bedrooms, Bathrooms, Toilets, Parking Spaces  
-- Total Area, Covered Area (sqm)  
-- Property Type (Detached Duplex, Block of Flats, etc.)  
-- Location (State: Lagos, Abuja, Ogun, Oyo, etc.)  
-- Listing duration (days on market)
-
----
-
-## 🛠️ Methodology & Techniques
-
-### 1️⃣ Data Preprocessing & Feature Engineering
-- Parsed numeric values from text fields (e.g. `"850 sqm" → 850.0`)
-- Handled missing values using:
-  - Zero-imputation for numeric features
-  - Explicit **missingness indicator variables**
-- Engineered a temporal feature: `Listing_Duration_Days`
-- Encoded categorical variables using one-hot encoding
-- Applied **log(1 + price)** transformation to stabilize variance
+| Feature Type | Examples |
+|-------------|----------|
+| Numeric | Bedrooms, Bathrooms, Area (sqm), Listing Duration |
+| Categorical | Property Type, District, State, Servicing, Furnishing |
+| Target | **log1p(Price)** to stabilize extreme right skew |
 
 ---
 
-### 2️⃣ Manual Ridge Regression Implementation
+## 🛠 Feature Engineering
 
-Ridge regression was implemented **from scratch** using the closed-form solution:
-
-$w = (X^TX + \lambda I)^{-1}X^Ty$
-
-Key implementation details:
-- Explicit bias term handling
-- L2 regularization to control multicollinearity
-- No reliance on `scikit-learn` for model fitting
+- Parsed area strings such as `"850 sqm"` into numeric floats  
+- Created **listing duration (days)** from date differences  
+- Added **missingness indicator columns** for key numeric features  
+- One-hot encoded categorical features (capturing location and property-type premiums)  
+- Embedded all preprocessing inside an sklearn **Pipeline** to ensure consistent treatment of train and test data  
 
 ---
 
-### 3️⃣ Model Training & Selection Strategy
+## ⚙️ Model Implementations
 
-The modeling pipeline followed standard supervised learning best practices:
+Two Ridge regression implementations are included:
 
-1. Data split into:
-   - **Training set (60%)**
-   - **Validation set (20%)**
-   - **Test set (20%)**
-2. For each regularization strength (α):
-   - Train the model on the training set
-   - Evaluate RMSE on the validation set
-3. Select the best α based on validation performance
-4. **Retrain the final model once** on the combined training + validation data
-5. Evaluate generalization performance **once** on the held-out test set
+- **Manual Ridge Regression**  
+  Implemented using linear algebra to illustrate the effect of L2 regularization on the normal equation.
 
-This approach preserves test set integrity and avoids data leakage.
+- **Sklearn Ridge Pipeline**  
+  Uses preprocessing, scaling, and Ridge regression with **GridSearchCV** and **5-fold cross-validation**.
 
 ---
 
-## 📈 Results
+## 🔁 Training & Evaluation Workflow
 
-| Model Configuration | RMSE (Train+Val) | RMSE (Test) |
-|---------------------|-----------------|-------------|
-| Ridge (full features) | 0.82 | **0.87** |
+1. Split data into **80% training** and **20% held-out test**
+2. Tune regularization strength **α** using cross-validation on training data only
+3. Select the best model and evaluate **once** on unseen test data
+4. Final test performance achieves **0.67 RMSE** on log-transformed prices
 
-### Interpretation
-The linear Ridge model provides a strong baseline but is limited by its inability to capture non-linear relationships common in housing markets. The results suggest that tree-based oror models that capture non-linear relationships may further improve performance.
+This workflow avoids data leakage and mirrors real-world ML deployment practices.
 
 ---
 
-## 🚀 Quick Start
+## 📈 Results & Interpretation
 
-1. **Clone the repository**
-```bash
-git clone https://github.com/KingsleyElo/Nigeria-Housing-Price-Prediction.git
-cd nigeria-housing-prediction
-```
+| Model | Validation / CV RMSE | Test RMSE |
+|------|---------------------|----------|
+| **Sklearn Ridge Pipeline** | **0.79** | **0.67** |
+| Manual Ridge Regression | 0.87 | 0.88 |
 
-2. **Install dependencies**
-pip install -r requirements.txt
+---
 
-3. **Launch Jupyter Notebook**
-jupyter notebook Nigeria_Housing_Price_Prediction.ipynb
+## 🧠 Why the Sklearn Pipeline Performs Better
 
-## 🎯 Learning Outcomes
+Although both approaches use Ridge regression, the sklearn pipeline generalizes better due to:
 
-Through this project, I:
+- Proper **feature scaling before regularization**
+- **Cross-validated α selection** instead of a single validation split
+- Numerically stable solvers
+- Identical preprocessing applied to unseen data during prediction
 
-- Implemented Ridge regression mathematically from scratch
-- Applied correct train / validation / test workflow
-- Tuned hyperparameters using validation RMSE
-- Managed real-world data challenges (missing values, messy text fields)
-- Engineered meaningful domain features
-- Interpreted log-scale error metrics in a practical context
+This highlights why production pipelines outperform mathematically correct but isolated implementations.
 
-## 📝 Author
+---
+
+## 🧰 Tech Stack
+
+- Python 3.9+
+- pandas, numpy
+- scikit-learn
+- matplotlib, seaborn
+- Ridge Regression, GridSearchCV
+
+---
+
+## 🎓 Skills Demonstrated
+
+- Linear algebra & regularization theory  
+- scikit learn pipeline implementation 
+- Feature engineering with domain knowledge  
+- Cross-validation and model selection  
+- Debugging train–test performance gaps 
+- Translating ML metrics into business insight  
+
+---
+
+## 👨‍💻 Author
 
 **Kingsley Eloebhose**  
-Machine Learning Student | Nigeria Housing Market Analysis  
-[LinkedIn](https://www.linkedin.com/in/kingsley-eloebhose-77ab41379) | [Email](mailto:eloebhosekingsley@outlook.com)
+*Machine Learning Engineer* | *Real Estate Analytics*
 
----
-
-*Built with ❤️ for learning Ridge regression on Nigerian real estate data*
-
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?logo=linkedin)](www.linkedin.com/in/kingsley-eloebhose-77ab41379)  
+[![Email](https://img.shields.io/badge/Email-Contact-gray?logo=gmail)](mailto:eloebhosekingsley@outlook.com)
 
